@@ -15,5 +15,4 @@ func main() {
 	r.RegisterRoute("/sike", controllers.SaySike)
 
 	log.Fatal(http.ListenAndServe(":8000", r.Router()))
-
 }
