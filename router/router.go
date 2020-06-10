@@ -14,7 +14,7 @@ type router struct {
 
 type Router interface {
 	Router() *mux.Router
-	RegisterRoute(pattern string, cb handler)
+	RegisterRoute(pattern string, cb handler, method string)
 }
 
 func New() Router {
@@ -36,6 +36,6 @@ func Logger(f func(w http.ResponseWriter, r *http.Request)) func(w http.Response
 	}
 }
 
-func (r *router) RegisterRoute(pattern string, cb handler) {
-	r.router.HandleFunc(pattern, Logger(cb))
+func (r *router) RegisterRoute(pattern string, cb handler, method string) {
+	r.router.HandleFunc(pattern, Logger(cb)).Methods(method)
 }
