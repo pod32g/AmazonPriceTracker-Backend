@@ -11,9 +11,8 @@ func main() {
 
 	r := router.New()
 
-	r.RegisterRoute("/", controllers.Test, "GET")
-	r.RegisterRoute("/sike", controllers.SaySike, "GET")
-	r.RegisterRoute("/products/all", controllers.GetAll, "POST")
+	r.RegisterRoute("/products", controllers.GetAll, "GET")
+	r.RegisterRoute("/products/new", controllers.NewProduct, "POST")
 
 	log.Fatal(http.ListenAndServe(":8000", r.Router()))
 }

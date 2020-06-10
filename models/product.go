@@ -8,11 +8,10 @@ import (
 	"time"
 )
 
-type _product struct {
-	gorm.Model
+type ProductStruct struct {
 	URL       string
-	price     float64
-	updatedAt time.Time
+	Price     float64
+	UpdatedAt time.Time
 }
 
 type productType struct {
@@ -20,10 +19,10 @@ type productType struct {
 }
 
 type Product interface {
-	Add(product *_product) error
-	First() (*_product, error)
-	Find(id int64) (*_product, error)
-	GetAll() ([]_product, error)
+	Add(product *ProductStruct) error
+	First() (*ProductStruct, error)
+	Find(id int64) (*ProductStruct, error)
+	GetAll() ([]ProductStruct, error)
 	Close() error
 }
 
@@ -43,32 +42,32 @@ func New() Product {
 		panic("Failed to connect to database")
 	}
 
-	db.AutoMigrate(&_product{})
+	db.AutoMigrate(&ProductStruct{})
 
 	return &productType{
 		db: db,
 	}
 }
 
-func (p *productType) Add(product *_product) error {
+func (p *productType) Add(product *ProductStruct) error {
 	p.db.Create(product)
 	return nil
 }
 
-func (p *productType) First() (*_product, error) {
-	var product _product
+func (p *productType) First() (*ProductStruct, error) {
+	var product ProductStruct
 	p.db.First(&product, 1)
 	return &product, nil
 }
 
-func (p *productType) Find(id int64) (*_product, error) {
-	var product _product
+func (p *productType) Find(id int64) (*ProductStruct, error) {
+	var product ProductStruct
 	p.db.First(&product, "Id = ?", id)
 	return &product, nil
 }
 
-func (p *productType) GetAll() ([]_product, error) {
-	var products []_product
+func (p *productType) GetAll() ([]ProductStruct, error) {
+	var products []ProductStruct
 	p.db.Find(&products)
 
 	return products, nil
