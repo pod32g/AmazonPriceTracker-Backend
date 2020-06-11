@@ -2,19 +2,21 @@ package controllers
 
 import (
 	"AmazonPriceTracker/models"
+	"AmazonPriceTracker/scrapper"
 	"AmazonPriceTracker/utils"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 )
 
 var Product = models.New()
 
 type productRequest struct {
-	URL   string
-	price string
+	URL   string `json:"URL"`
+	price int    `json:"price"`
+	Name  string
 }
 
 func GetAll(w http.ResponseWriter, r *http.Request) {
@@ -22,40 +24,54 @@ func GetAll(w http.ResponseWriter, r *http.Request) {
 	products, err := Product.GetAll()
 
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("SERVER ERROR"))
 	}
 
-	json.NewEncoder(w).Encode(products)
+	var response = map[string][]models.ProductStruct{"products": products}
+
+	json.NewEncoder(w).Encode(response)
 }
 
 func NewProduct(w http.ResponseWriter, r *http.Request) {
-
-	var productRqst productRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&productRqst); err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, map[string]string{"error": "Invalid request", "message": err.Error()})
-		return
-	}
-	fmt.Println(productRqst)
-	defer r.Body.Close()
-
-	price, err := strconv.ParseFloat(productRqst.price, 64)
+	var newProduct productRequest
+	body, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, map[string]string{"error": "Invalid request", "message": err.Error()})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	fmt.Println(string(body))
+
+	json.Unmarshal(body, &newProduct)
+
+	price, err := scrapper.ExtractPrice(newProduct.URL)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		utils.JSONResponse(w, http.StatusInternalServerError, map[string]string{"error": "There was an error parsing the amazon URL"})
+		return
+	}
+
+	name, err := scrapper.ExtractTitle(newProduct.URL)
+
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 
 	product := &models.ProductStruct{
-		URL:       productRqst.URL,
+		URL:       newProduct.URL,
 		Price:     price,
-		UpdatedAt: time.Now(),
+		Name:      name,
+		UpdatedAt: time.Time{},
 	}
 
 	if err := Product.Add(product); err != nil {
+		fmt.Println(err.Error())
 		utils.JSONResponse(w, http.StatusInternalServerError, map[string]string{"error": "There was an error processing the request"})
 		return
 	}
 
+	utils.JSONResponse(w, http.StatusCreated, map[string]string{"Success": "Created Succesfully"})
 }

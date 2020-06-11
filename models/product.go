@@ -10,7 +10,8 @@ import (
 
 type ProductStruct struct {
 	URL       string
-	Price     float64
+	Price     float32
+	Name      string
 	UpdatedAt time.Time
 }
 

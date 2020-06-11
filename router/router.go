@@ -20,7 +20,7 @@ type Router interface {
 func New() Router {
 	a := &router{}
 
-	r := mux.NewRouter()
+	r := mux.NewRouter().StrictSlash(true)
 	a.router = r
 	return a
 }
